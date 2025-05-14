@@ -1,0 +1,234 @@
+{
+  "usuarios": [
+    {
+      "id": 1,
+      "nome": "Administrador Principal",
+      "email": "admin@exemplo.com",
+      "senha": "admin123",
+      "perfil": "admin1",
+      "dataCriacao": "2023-05-15T10:00:00",
+      "ultimoLogin": "2025-05-14T09:36:50.841Z",
+      "temaSelecionado": "padrao",
+      "perguntasChatBot": 0,
+      "historicoLogin": [
+        {
+          "data": "2023-05-15T10:00:00",
+          "ip": "192.168.1.1"
+        },
+        {
+          "data": "2023-06-01T14:30:00",
+          "ip": "192.168.1.1"
+        },
+        {
+          "data": "2025-05-14T08:32:27.919Z",
+          "ip": "::1"
+        },
+        {
+          "data": "2025-05-14T08:33:07.489Z",
+          "ip": "::1"
+        },
+        {
+          "data": "2025-05-14T08:38:54.860Z",
+          "ip": "::1"
+        },
+        {
+          "data": "2025-05-14T08:48:34.420Z",
+          "ip": "::1"
+        },
+        {
+          "data": "2025-05-14T09:22:11.565Z",
+          "ip": "::1"
+        },
+        {
+          "data": "2025-05-14T09:36:50.841Z",
+          "ip": "::1"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "nome": "Docente",
+      "email": "docente@exemplo.com",
+      "senha": "docente123",
+      "perfil": "admin2",
+      "dataCriacao": "2023-05-16T09:00:00",
+      "ultimoLogin": "2025-05-14T09:37:40.542Z",
+      "temaSelecionado": "padrao",
+      "perguntasChatBot": 0,
+      "historicoLogin": [
+        {
+          "data": "2023-05-16T09:00:00",
+          "ip": "192.168.1.2"
+        },
+        {
+          "data": "2023-05-30T16:45:00",
+          "ip": "192.168.1.2"
+        },
+        {
+          "data": "2025-05-14T08:34:32.162Z",
+          "ip": "::1"
+        },
+        {
+          "data": "2025-05-14T08:50:03.188Z",
+          "ip": "::1"
+        },
+        {
+          "data": "2025-05-14T09:23:56.737Z",
+          "ip": "::1"
+        },
+        {
+          "data": "2025-05-14T09:37:40.542Z",
+          "ip": "::1"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "nome": "Usuário Teste",
+      "email": "usuario@exemplo.com",
+      "senha": "usuario123",
+      "perfil": "usuario",
+      "dataCriacao": "2023-05-20T11:30:00",
+      "ultimoLogin": "2025-05-14T08:54:11.813Z",
+      "temaSelecionado": "tecnologia",
+      "perguntasChatBot": 3,
+      "historicoLogin": [
+        {
+          "data": "2023-05-20T11:30:00",
+          "ip": "192.168.1.3"
+        },
+        {
+          "data": "2023-05-25T13:15:00",
+          "ip": "192.168.1.3"
+        },
+        {
+          "data": "2025-05-14T08:54:11.813Z",
+          "ip": "::ffff:127.0.0.1"
+        }
+      ]
+    }
+  ],
+  "perfis": [
+    {
+      "id": "admin1",
+      "nome": "Administrador Principal",
+      "descricao": "Acesso completo ao sistema",
+      "permissoes": [
+        "gerenciar_usuarios",
+        "gerenciar_temas",
+        "ver_estatisticas",
+        "gerenciar_chatbot",
+        "monitorar_atividades"
+      ]
+    },
+    {
+      "id": "admin2",
+      "nome": "Docente",
+      "descricao": "Perfil de monitoramento",
+      "permissoes": [
+        "ver_estatisticas",
+        "monitorar_atividades"
+      ]
+    },
+    {
+      "id": "usuario",
+      "nome": "Usuário Padrão",
+      "descricao": "Acesso básico ao sistema",
+      "permissoes": [
+        "usar_chat",
+        "usar_chatbot",
+        "selecionar_tema"
+      ]
+    }
+  ],
+  "temas": [
+    {
+      "id": "padrao",
+      "nome": "Tema Padrão",
+      "descricao": "Tema padrão do sistema",
+      "corPrimaria": "#007bff",
+      "corSecundaria": "#6c757d",
+      "corFundo": "#ffffff",
+      "corTexto": "#212529"
+    },
+    {
+      "id": "tecnologia",
+      "nome": "Tecnologia",
+      "descricao": "Tema voltado para tecnologia",
+      "corPrimaria": "#17a2b8",
+      "corSecundaria": "#6610f2",
+      "corFundo": "#f8f9fa",
+      "corTexto": "#212529",
+      "icone": "laptop-code"
+    },
+    {
+      "id": "educacao",
+      "nome": "Educação",
+      "descricao": "Tema voltado para educação",
+      "corPrimaria": "#28a745",
+      "corSecundaria": "#20c997",
+      "corFundo": "#f8f9fa",
+      "corTexto": "#212529",
+      "icone": "graduation-cap"
+    },
+    {
+      "id": "saude",
+      "nome": "Saúde",
+      "descricao": "Tema voltado para saúde",
+      "corPrimaria": "#dc3545",
+      "corSecundaria": "#fd7e14",
+      "corFundo": "#f8f9fa",
+      "corTexto": "#212529",
+      "icone": "heartbeat"
+    }
+  ],
+  "chatbot": {
+    "respostas": {
+      "padrao": {
+        "saudacao": "Olá! Como posso ajudar você hoje?",
+        "despedida": "Até mais! Foi um prazer ajudar.",
+        "semResposta": "Desculpe, não tenho informações sobre isso no momento.",
+        "limiteAtingido": "Você atingiu o limite de 5 perguntas. Por favor, faça login novamente mais tarde."
+      },
+      "tecnologia": {
+        "saudacao": "Olá! Pronto para falar sobre tecnologia?",
+        "despedida": "Até a próxima! Continue explorando o mundo da tecnologia.",
+        "semResposta": "Essa é uma questão técnica avançada que ainda não tenho em meu banco de dados.",
+        "limiteAtingido": "Você atingiu o limite de 5 perguntas sobre tecnologia. Volte mais tarde para continuar aprendendo!",
+        "perguntas": {
+          "o que é inteligência artificial": "Inteligência Artificial (IA) é a simulação da inteligência humana em máquinas programadas para pensar e aprender como humanos.",
+          "o que é programação": "Programação é o processo de criar instruções que dizem ao computador como realizar uma tarefa específica.",
+          "o que é cloud computing": "Cloud Computing é a entrega de serviços de computação pela internet, incluindo servidores, armazenamento, bancos de dados, redes, software e análises."
+        }
+      },
+      "educacao": {
+        "saudacao": "Olá! Pronto para aprender algo novo hoje?",
+        "despedida": "Até a próxima aula! Continue aprendendo sempre.",
+        "semResposta": "Essa é uma questão educacional que precisarei pesquisar mais a fundo.",
+        "limiteAtingido": "Você atingiu o limite de 5 perguntas educacionais. Volte mais tarde para continuar aprendendo!",
+        "perguntas": {
+          "quais são os métodos de ensino": "Os principais métodos de ensino incluem aprendizado ativo, baseado em projetos, aula expositiva, ensino híbrido e aprendizado colaborativo.",
+          "o que é construtivismo": "Construtivismo é uma teoria de aprendizagem que sugere que os alunos constroem conhecimento ativamente, baseando-se em suas experiências e interações.",
+          "como funciona o ensino à distância": "O ensino à distância funciona através de plataformas online onde professores compartilham materiais, realizam aulas síncronas ou assíncronas, e avaliam os alunos remotamente."
+        }
+      },
+      "saude": {
+        "saudacao": "Olá! Como posso ajudar com informações sobre saúde hoje?",
+        "despedida": "Até mais! Cuide bem da sua saúde!",
+        "semResposta": "Essa é uma questão médica que requer a consulta com um profissional de saúde qualificado.",
+        "limiteAtingido": "Você atingiu o limite de 5 perguntas sobre saúde. Volte mais tarde para mais informações!",
+        "perguntas": {
+          "como manter uma alimentação saudável": "Uma alimentação saudável inclui variedade de frutas, vegetais, proteínas magras, grãos integrais e gorduras saudáveis em quantidades adequadas.",
+          "quais são os benefícios do exercício físico": "Os benefícios do exercício físico incluem melhora da saúde cardiovascular, fortalecimento muscular, controle de peso, redução do estresse e melhora do humor.",
+          "como melhorar a qualidade do sono": "Para melhorar a qualidade do sono, mantenha uma rotina regular, evite cafeína e eletrônicos antes de dormir, e crie um ambiente confortável e escuro no quarto."
+        }
+      }
+    }
+  },
+  "estatisticas": {
+    "acessosTotais": 12,
+    "mensagensChat": 4,
+    "perguntasChatbot": 5,
+    "usuariosAtivos": 11
+  }
+}

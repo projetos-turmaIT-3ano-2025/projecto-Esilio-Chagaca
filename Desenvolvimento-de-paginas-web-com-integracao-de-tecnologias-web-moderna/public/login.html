@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - Projeto Multitemático</title>
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="estilo.css">
+  <style>
+    .auth-container {
+      max-width: 400px;
+      margin: 0 auto;
+      padding: 20px;
+      border-radius: 5px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      background-color: #fff;
+    }
+    .form-toggle {
+      text-align: center;
+      margin-top: 15px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Navbar responsiva -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="#">Projeto Multitemático</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item">
+            <a class="nav-link" href="index.html">AJAX</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="chat.html">WebSocket</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-md-8">
+        <h1 class="mb-4 text-center">Acesso ao Sistema</h1>
+        <div class="auth-container">
+          <!-- Formulário de Login -->
+          <form id="login-form" class="mb-3">
+            <h4 class="mb-3 text-center">Login</h4>
+            <div class="mb-3">
+              <label for="login-email" class="form-label">Email</label>
+              <input type="email" class="form-control" id="login-email" required>
+            </div>
+            <div class="mb-3">
+              <label for="login-senha" class="form-label">Senha</label>
+              <input type="password" class="form-control" id="login-senha" required>
+            </div>
+            <div class="d-grid">
+              <button type="submit" class="btn btn-primary">Entrar</button>
+            </div>
+          </form>
+          <div id="login-feedback"></div>
+          <div class="form-toggle">
+            <p>Não tem uma conta? <a href="#" id="toggle-registro">Registre-se</a></p>
+          </div>
+        </div>
+
+        <!-- Formulário de Registro (inicialmente oculto) -->
+        <div class="auth-container mt-4" style="display: none;" id="registro-container">
+          <form id="registro-form" class="mb-3">
+            <h4 class="mb-3 text-center">Criar Conta</h4>
+            <div class="mb-3">
+              <label for="registro-nome" class="form-label">Nome</label>
+              <input type="text" class="form-control" id="registro-nome" required>
+            </div>
+            <div class="mb-3">
+              <label for="registro-email" class="form-label">Email</label>
+              <input type="email" class="form-control" id="registro-email" required>
+            </div>
+            <div class="mb-3">
+              <label for="registro-senha" class="form-label">Senha</label>
+              <input type="password" class="form-control" id="registro-senha" required>
+            </div>
+            <div class="mb-3">
+              <label for="registro-confirma-senha" class="form-label">Confirmar Senha</label>
+              <input type="password" class="form-control" id="registro-confirma-senha" required>
+            </div>
+            <div class="d-grid">
+              <button type="submit" class="btn btn-success">Registrar</button>
+            </div>
+          </form>
+          <div id="registro-feedback"></div>
+          <div class="form-toggle">
+            <p>Já tem uma conta? <a href="#" id="toggle-login">Fazer Login</a></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Modal de alerta para feedback visual -->
+  <div class="modal fade" id="modalAlerta" tabindex="-1" aria-labelledby="modalAlertaLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="modalAlertaLabel">Mensagem</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body" id="modalAlertaBody"></div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // Elementos dos formulários
+    const loginForm = document.getElementById('login-form');
+    const registroForm = document.getElementById('registro-form');
+    const loginFeedback = document.getElementById('login-feedback');
+    const registroFeedback = document.getElementById('registro-feedback');
+    const registroContainer = document.getElementById('registro-container');
+    const toggleRegistro = document.getElementById('toggle-registro');
+    const toggleLogin = document.getElementById('toggle-login');
+    
+    // Função para obter parâmetros da URL
+    function getUrlParameter(name) {
+      name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
+      const regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
+      const results = regex.exec(location.search);
+      return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+    }
+    
+    // Obtém a página de retorno da URL (se existir)
+    const returnUrl = getUrlParameter('returnUrl') || 'index.html';
+
+    // Alternância entre login e registro
+    toggleRegistro.addEventListener('click', function(e) {
+      e.preventDefault();
+      loginForm.parentElement.style.display = 'none';
+      registroContainer.style.display = 'block';
+    });
+
+    toggleLogin.addEventListener('click', function(e) {
+      e.preventDefault();
+      registroContainer.style.display = 'none';
+      loginForm.parentElement.style.display = 'block';
+    });
+
+    // Submissão do formulário de login
+    loginForm.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      loginFeedback.innerHTML = '';
+      
+      const email = document.getElementById('login-email').value;
+      const senha = document.getElementById('login-senha').value;
+      
+      try {
+        const response = await fetch('/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, senha })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+          // Exibe mensagem de sucesso
+          document.getElementById('modalAlertaBody').innerText = data.mensagem;
+          const modal = new bootstrap.Modal(document.getElementById('modalAlerta'));
+          modal.show();
+          
+          // Redireciona para a página de retorno ou principal após 1 segundo
+          setTimeout(() => {
+            window.location.href = returnUrl;
+          }, 1000);
+        } else {
+          // Exibe mensagem de erro
+          loginFeedback.innerHTML = `<div class="alert alert-danger mt-3">${data.erro}</div>`;
+        }
+      } catch (error) {
+        loginFeedback.innerHTML = `<div class="alert alert-danger mt-3">Erro ao conectar com o servidor.</div>`;
+      }
+    });
+
+    // Submissão do formulário de registro
+    registroForm.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      registroFeedback.innerHTML = '';
+      
+      const nome = document.getElementById('registro-nome').value;
+      const email = document.getElementById('registro-email').value;
+      const senha = document.getElementById('registro-senha').value;
+      const confirmaSenha = document.getElementById('registro-confirma-senha').value;
+      
+      // Verifica se as senhas coincidem
+      if (senha !== confirmaSenha) {
+        registroFeedback.innerHTML = `<div class="alert alert-danger mt-3">As senhas não coincidem.</div>`;
+        return;
+      }
+      
+      try {
+        const response = await fetch('/api/registro', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ nome, email, senha })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+          // Exibe mensagem de sucesso
+          document.getElementById('modalAlertaBody').innerText = data.mensagem;
+          const modal = new bootstrap.Modal(document.getElementById('modalAlerta'));
+          modal.show();
+          
+          // Redireciona para a página de retorno ou principal após 1 segundo
+          setTimeout(() => {
+            window.location.href = returnUrl;
+          }, 1000);
+        } else {
+          // Exibe mensagem de erro
+          registroFeedback.innerHTML = `<div class="alert alert-danger mt-3">${data.erro}</div>`;
+        }
+      } catch (error) {
+        registroFeedback.innerHTML = `<div class="alert alert-danger mt-3">Erro ao conectar com o servidor.</div>`;
+      }
+    });
+  </script>
+</body>
+</html> 

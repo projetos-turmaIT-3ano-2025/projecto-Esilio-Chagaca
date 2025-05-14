@@ -1,0 +1,16 @@
+{
+  "name": "projeto-pagina-web",
+  "version": "1.0.0",
+  "description": "Desenvolvimento de Página Web com Integração de Tecnologias Web Modernas",
+  "main": "server/app.js",
+  "scripts": {
+    "start": "node server/app.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^5.1.0",
+    "express-session": "^1.18.1",
+    "socket.io": "^4.8.1"
+  }
+}

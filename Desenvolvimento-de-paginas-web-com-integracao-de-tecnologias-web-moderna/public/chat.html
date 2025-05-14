@@ -1,0 +1,481 @@
+<!-- Página de chat em tempo real usando WebSocket (Socket.io) e Bootstrap -->
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chat em Tempo Real</title>
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="estilo.css">
+  <style>
+    /* Estilos específicos para o chat */
+    #chat-mensagens {
+      height: 300px;
+      overflow-y: auto;
+      padding: 15px;
+    }
+    .mensagem {
+      margin-bottom: 10px;
+      padding: 8px 12px;
+      border-radius: 12px;
+      max-width: 80%;
+      position: relative;
+    }
+    .mensagem-outros {
+      background-color: #f1f1f1;
+      float: left;
+      clear: both;
+    }
+    .mensagem-minha {
+      background-color: #d1ecf1;
+      float: right;
+      clear: both;
+    }
+    .mensagem-admin {
+      background-color: #ffe8b3;
+    }
+    .usuario-nome {
+      font-weight: bold;
+      font-size: 0.85rem;
+      display: block;
+      margin-bottom: 3px;
+    }
+    .mensagem-texto {
+      word-wrap: break-word;
+    }
+    .timestamp {
+      font-size: 0.7rem;
+      color: #888;
+      margin-top: 3px;
+      text-align: right;
+    }
+    .clearfix::after {
+      content: "";
+      clear: both;
+      display: table;
+    }
+    #usuarios-online {
+      height: 300px;
+      overflow-y: auto;
+    }
+    .usuario-item {
+      padding: 5px 10px;
+      border-bottom: 1px solid #eee;
+    }
+    .usuario-item.admin {
+      background-color: #fff3cd;
+    }
+    .badge-admin {
+      font-size: 0.7rem;
+      margin-left: 5px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Navbar responsiva -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="#">Projeto Multitemático</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav">
+          <li class="nav-item">
+            <a class="nav-link" href="index.html">AJAX</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link active" aria-current="page" href="chat.html">WebSocket</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="chatbot.html">ChatBot</a>
+          </li>
+        </ul>
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item dropdown" id="temas-dropdown" style="display: none;">
+            <a class="nav-link dropdown-toggle" href="#" id="temasDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              Temas
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end" id="temas-lista">
+              <!-- Temas serão adicionados dinamicamente aqui -->
+            </ul>
+          </li>
+          <li class="nav-item dropdown" id="usuario-dropdown" style="display: none;">
+            <a class="nav-link dropdown-toggle" href="#" id="usuarioDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              <span id="usuario-nome">Usuário</span>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end">
+              <li><a class="dropdown-item" href="admin.html" id="link-admin" style="display: none;">Dashboard Admin</a></li>
+              <li><hr class="dropdown-divider"></li>
+              <li><a class="dropdown-item" href="#" id="btn-logout">Sair</a></li>
+            </ul>
+          </li>
+          <li class="nav-item" id="login-item">
+            <a class="nav-link" href="login.html">Login</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-9">
+        <h1 class="mb-4">Chat em Tempo Real (WebSocket)</h1>
+        <!-- Mensagem para usuários não logados -->
+        <div class="alert alert-warning" id="nao-logado-alert">
+          Você precisa fazer <a href="login.html?returnUrl=chat.html" class="alert-link">login</a> para participar do chat.
+        </div>
+        <!-- Área de mensagens do chat -->
+        <div class="card mb-3" id="chat-container" style="display: none;">
+          <div class="card-body clearfix" id="chat-mensagens"></div>
+        </div>
+        <!-- Formulário de envio de mensagens -->
+        <form id="chat-form" class="row g-2" style="display: none;">
+          <div class="col-md-10">
+            <input type="text" class="form-control" id="mensagem" placeholder="Digite sua mensagem" required>
+          </div>
+          <div class="col-md-2 d-grid">
+            <button type="submit" class="btn btn-primary">Enviar</button>
+          </div>
+        </form>
+      </div>
+      <div class="col-lg-3">
+        <div class="card">
+          <div class="card-header">
+            <h5 class="card-title mb-0">Usuários Online</h5>
+          </div>
+          <div class="card-body p-0" id="usuarios-online">
+            <p class="p-3 text-center text-muted" id="sem-usuarios">Nenhum usuário online</p>
+            <ul class="list-group list-group-flush" id="lista-usuarios">
+              <!-- Usuários serão adicionados dinamicamente aqui -->
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Modal de alerta para feedback visual -->
+  <div class="modal fade" id="modalAlerta" tabindex="-1" aria-labelledby="modalAlertaLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="modalAlertaLabel">Atenção</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body" id="modalAlertaBody"></div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- Socket.io -->
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    // Variáveis globais
+    let socket;
+    let usuarioLogado = null;
+    let temaSelecionado = null;
+    
+    // Elementos DOM
+    const chatForm = document.getElementById('chat-form');
+    const chatMensagens = document.getElementById('chat-mensagens');
+    const mensagemInput = document.getElementById('mensagem');
+    const usuarioDropdown = document.getElementById('usuario-dropdown');
+    const usuarioNome = document.getElementById('usuario-nome');
+    const loginItem = document.getElementById('login-item');
+    const btnLogout = document.getElementById('btn-logout');
+    const linkAdmin = document.getElementById('link-admin');
+    const chatContainer = document.getElementById('chat-container');
+    const naoLogadoAlert = document.getElementById('nao-logado-alert');
+    const listaUsuarios = document.getElementById('lista-usuarios');
+    const semUsuarios = document.getElementById('sem-usuarios');
+    const temasDropdown = document.getElementById('temas-dropdown');
+    const temasLista = document.getElementById('temas-lista');
+    
+    // Verifica se o usuário está logado
+    async function verificarLogin() {
+      try {
+        const response = await fetch('/api/verificar-login');
+        if (response.ok) {
+          const data = await response.json();
+          usuarioLogado = data.usuario;
+          temaSelecionado = data.temaSelecionado;
+          
+          // Atualiza interface para usuário logado
+          usuarioNome.textContent = usuarioLogado.nome;
+          usuarioDropdown.style.display = 'block';
+          loginItem.style.display = 'none';
+          
+          // Verifica se é um perfil admin
+          if (usuarioLogado.perfil === 'admin1' || usuarioLogado.perfil === 'admin2') {
+            linkAdmin.style.display = 'block';
+          }
+          
+          // Exibe chat para usuários logados
+          chatContainer.style.display = 'block';
+          chatForm.style.display = 'flex';
+          naoLogadoAlert.style.display = 'none';
+          
+          // Conecta ao socket.io
+          conectarSocket();
+          
+          // Carrega temas disponíveis
+          carregarTemas();
+          
+          return true;
+        } else {
+          // Usuário não está logado
+          chatContainer.style.display = 'none';
+          chatForm.style.display = 'none';
+          naoLogadoAlert.style.display = 'block';
+          
+          return false;
+        }
+      } catch (error) {
+        console.error('Erro ao verificar login:', error);
+        exibirAlerta('Erro ao verificar login');
+        return false;
+      }
+    }
+    
+    // Função para carregar temas disponíveis
+    async function carregarTemas() {
+      try {
+        const response = await fetch('/api/temas');
+        if (response.ok) {
+          const temas = await response.json();
+          // Preenche dropdown de temas
+          temasLista.innerHTML = '';
+          temas.forEach(tema => {
+            const li = document.createElement('li');
+            const a = document.createElement('a');
+            a.classList.add('dropdown-item');
+            a.setAttribute('data-tema', tema.id);
+            a.innerHTML = `<i class="fas fa-${tema.icone || 'palette'}"></i> ${tema.nome}`;
+            
+            // Marca tema atual
+            if (tema.id === temaSelecionado) {
+              a.classList.add('active');
+            }
+            
+            // Evento de click para mudar tema
+            a.addEventListener('click', () => mudarTema(tema.id));
+            
+            li.appendChild(a);
+            temasLista.appendChild(li);
+          });
+          
+          // Exibe dropdown de temas
+          temasDropdown.style.display = 'block';
+        }
+      } catch (error) {
+        console.error('Erro ao carregar temas:', error);
+      }
+    }
+    
+    // Função para mudar tema
+    async function mudarTema(temaId) {
+      try {
+        const response = await fetch('/api/tema', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ tema: temaId })
+        });
+        
+        if (response.ok) {
+          temaSelecionado = temaId;
+          location.reload(); // Recarrega para aplicar o tema
+        } else {
+          exibirAlerta('Erro ao alterar tema');
+        }
+      } catch (error) {
+        exibirAlerta('Erro ao conectar com o servidor');
+      }
+    }
+    
+    // Conecta ao Socket.io
+    function conectarSocket() {
+      socket = io({
+        autoConnect: false  // Não conecta automaticamente
+      });
+      
+      // Evento de conexão
+      socket.on('connect', () => {
+        exibirMensagemSistema('Conectado ao chat');
+      });
+      
+      // Evento de erro de conexão
+      socket.on('connect_error', (error) => {
+        console.error('Erro de conexão:', error.message);
+        
+        if (error.message === 'Não autorizado') {
+          exibirAlerta('Você precisa estar logado para acessar o chat');
+          
+          // Redireciona para a página de login com URL de retorno
+          setTimeout(() => {
+            window.location.href = 'login.html?returnUrl=' + encodeURIComponent(window.location.pathname);
+          }, 2000);
+        } else {
+          exibirAlerta('Erro ao conectar ao servidor de chat: ' + error.message);
+        }
+      });
+      
+      // Recebe mensagens do chat
+      socket.on('mensagemChat', (data) => {
+        adicionarMensagem(data);
+      });
+      
+      // Recebe lista de usuários online
+      socket.on('usuariosOnline', (usuarios) => {
+        atualizarListaUsuarios(usuarios);
+      });
+      
+      // Inicia a conexão após configurar os listeners
+      socket.connect();
+    }
+    
+    // Adiciona uma mensagem ao chat
+    function adicionarMensagem(data) {
+      const div = document.createElement('div');
+      
+      // Determina o tipo de mensagem (minha, outros, admin)
+      let classesMensagem = 'mensagem';
+      if (usuarioLogado && data.userId === usuarioLogado.id) {
+        classesMensagem += ' mensagem-minha';
+      } else {
+        classesMensagem += ' mensagem-outros';
+      }
+      
+      if (data.perfil === 'admin1' || data.perfil === 'admin2') {
+        classesMensagem += ' mensagem-admin';
+      }
+      
+      div.className = classesMensagem;
+      
+      // Formata data
+      const dataMsg = new Date(data.timestamp);
+      const horaFormatada = dataMsg.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      
+      // Conteúdo da mensagem
+      div.innerHTML = `
+        <span class="usuario-nome">${data.nome}${data.perfil.includes('admin') ? ' <span class="badge bg-warning text-dark badge-admin">Admin</span>' : ''}</span>
+        <div class="mensagem-texto">${data.mensagem}</div>
+        <div class="timestamp">${horaFormatada}</div>
+      `;
+      
+      chatMensagens.appendChild(div);
+      chatMensagens.scrollTop = chatMensagens.scrollHeight;
+    }
+    
+    // Exibe mensagem de sistema
+    function exibirMensagemSistema(mensagem) {
+      const div = document.createElement('div');
+      div.style.clear = 'both';
+      div.style.textAlign = 'center';
+      div.style.padding = '5px';
+      div.style.color = '#666';
+      div.style.fontSize = '0.85rem';
+      div.textContent = mensagem;
+      chatMensagens.appendChild(div);
+      chatMensagens.scrollTop = chatMensagens.scrollHeight;
+    }
+    
+    // Atualiza a lista de usuários online
+    function atualizarListaUsuarios(usuarios) {
+      if (usuarios.length === 0) {
+        semUsuarios.style.display = 'block';
+        listaUsuarios.innerHTML = '';
+        return;
+      }
+      
+      semUsuarios.style.display = 'none';
+      listaUsuarios.innerHTML = '';
+      
+      usuarios.forEach(usuario => {
+        const li = document.createElement('li');
+        li.className = `list-group-item usuario-item${usuario.perfil.includes('admin') ? ' admin' : ''}`;
+        
+        const icone = document.createElement('i');
+        icone.className = 'fas fa-user me-2';
+        
+        const spanNome = document.createElement('span');
+        spanNome.textContent = usuario.nome;
+        
+        li.appendChild(icone);
+        li.appendChild(spanNome);
+        
+        if (usuario.perfil.includes('admin')) {
+          const badge = document.createElement('span');
+          badge.className = 'badge bg-warning text-dark float-end';
+          badge.textContent = 'Admin';
+          li.appendChild(badge);
+        }
+        
+        listaUsuarios.appendChild(li);
+      });
+    }
+    
+    // Exibe alerta
+    function exibirAlerta(mensagem) {
+      document.getElementById('modalAlertaBody').innerText = mensagem;
+      const modal = new bootstrap.Modal(document.getElementById('modalAlerta'));
+      modal.show();
+    }
+    
+    // Evento de logout
+    btnLogout.addEventListener('click', async function(e) {
+      e.preventDefault();
+      
+      try {
+        const response = await fetch('/api/logout', {
+          method: 'POST'
+        });
+        
+        if (response.ok) {
+          window.location.href = 'login.html';
+        } else {
+          exibirAlerta('Erro ao fazer logout');
+        }
+      } catch (error) {
+        exibirAlerta('Erro ao conectar com o servidor');
+      }
+    });
+    
+    // Envia mensagem ao servidor quando o formulário é enviado
+    chatForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const mensagem = mensagemInput.value.trim();
+      if (mensagem) {
+        socket.emit('mensagemChat', { mensagem });
+        mensagemInput.value = '';
+        mensagemInput.focus();
+      } else {
+        exibirAlerta('Digite uma mensagem para enviar');
+      }
+    });
+    
+    // Inicializa a página
+    window.addEventListener('load', () => {
+      verificarLogin().then(logado => {
+        if (!logado) {
+          // Tentativa provisória para usar o chat sem login
+          chatContainer.style.display = 'block';
+          chatForm.style.display = 'flex';
+          
+          // Adiciona evento para chat não autenticado
+          chatForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            exibirAlerta('Você precisa fazer login para enviar mensagens');
+          });
+        }
+      });
+    });
+  </script>
+</body>
+</html>

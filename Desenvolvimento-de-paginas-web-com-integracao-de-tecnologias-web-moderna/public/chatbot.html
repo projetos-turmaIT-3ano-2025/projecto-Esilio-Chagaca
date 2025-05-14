@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ChatBot - Projeto Multitemático</title>
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="estilo.css">
+  <style>
+    .chat-container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    .chat-messages {
+      height: 400px;
+      overflow-y: auto;
+      padding: 1rem;
+      background-color: #f8f9fa;
+      border-radius: 0.25rem;
+      margin-bottom: 1rem;
+    }
+    .message {
+      margin-bottom: 1rem;
+      padding: 0.75rem 1rem;
+      border-radius: 1rem;
+      max-width: 75%;
+      position: relative;
+    }
+    .user-message {
+      background-color: #d1ecf1;
+      color: #0c5460;
+      border-top-right-radius: 0;
+      margin-left: auto;
+    }
+    .bot-message {
+      background-color: #e9ecef;
+      color: #495057;
+      border-top-left-radius: 0;
+    }
+    .message-time {
+      font-size: 0.75rem;
+      color: #6c757d;
+      text-align: right;
+      margin-top: 0.25rem;
+    }
+    .perguntas-restantes {
+      font-size: 0.875rem;
+      color: #6c757d;
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+    .typing-indicator {
+      display: inline-block;
+      padding: 0.5rem 1rem;
+      background-color: #e9ecef;
+      border-radius: 1rem;
+      margin-bottom: 1rem;
+      display: none;
+    }
+    .typing-indicator span {
+      height: 0.5rem;
+      width: 0.5rem;
+      background-color: #6c757d;
+      display: inline-block;
+      border-radius: 50%;
+      opacity: 0.4;
+      animation: typing 1s infinite;
+      margin: 0 0.1rem;
+    }
+    .typing-indicator span:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+    .typing-indicator span:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+    @keyframes typing {
+      0% { opacity: 0.4; }
+      50% { opacity: 1; }
+      100% { opacity: 0.4; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Navbar responsiva -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="#">Projeto Multitemático</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav">
+          <li class="nav-item">
+            <a class="nav-link" href="index.html">AJAX</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="chat.html">WebSocket</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link active" aria-current="page" href="chatbot.html">ChatBot</a>
+          </li>
+        </ul>
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item dropdown" id="temas-dropdown" style="display: none;">
+            <a class="nav-link dropdown-toggle" href="#" id="temasDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              Temas
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end" id="temas-lista">
+              <!-- Temas serão adicionados dinamicamente aqui -->
+            </ul>
+          </li>
+          <li class="nav-item dropdown" id="usuario-dropdown" style="display: none;">
+            <a class="nav-link dropdown-toggle" href="#" id="usuarioDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              <span id="usuario-nome">Usuário</span>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end">
+              <li><a class="dropdown-item" href="admin.html" id="link-admin" style="display: none;">Dashboard Admin</a></li>
+              <li><hr class="dropdown-divider"></li>
+              <li><a class="dropdown-item" href="#" id="btn-logout">Sair</a></li>
+            </ul>
+          </li>
+          <li class="nav-item" id="login-item">
+            <a class="nav-link" href="login.html">Login</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+  
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-md-10">
+        <h1 class="mb-4 text-center">ChatBot Multitemático</h1>
+        
+        <!-- Alerta para usuários não logados -->
+        <div class="alert alert-warning" id="nao-logado-alert">
+          Você precisa fazer <a href="login.html?returnUrl=chatbot.html" class="alert-link">login</a> para usar o ChatBot.
+        </div>
+        
+        <!-- Container do ChatBot -->
+        <div class="chat-container" id="chat-container" style="display: none;">
+          <div class="card mb-3">
+            <div class="card-header bg-primary text-white">
+              <i class="fas fa-robot me-2"></i> Assistente Virtual
+              <div class="float-end" id="tema-atual"></div>
+            </div>
+            <div class="card-body p-0">
+              <div class="chat-messages" id="chat-messages">
+                <!-- Mensagens serão adicionadas aqui dinamicamente -->
+              </div>
+              <div class="perguntas-restantes" id="perguntas-contador">
+                Você tem 5 perguntas disponíveis
+              </div>
+              <div class="typing-indicator" id="typing-indicator">
+                <span></span>
+                <span></span>
+                <span></span>
+              </div>
+              <div class="p-3">
+                <form id="chatbot-form">
+                  <div class="input-group">
+                    <input type="text" class="form-control" id="pergunta-input" placeholder="Digite sua pergunta aqui...">
+                    <button class="btn btn-primary" type="submit" id="enviar-btn">
+                      <i class="fas fa-paper-plane"></i> Enviar
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Modal de alerta para feedback visual -->
+  <div class="modal fade" id="modalAlerta" tabindex="-1" aria-labelledby="modalAlertaLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="modalAlertaLabel">Atenção</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body" id="modalAlertaBody"></div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // Variáveis globais
+    let usuarioLogado = null;
+    let temaSelecionado = null;
+    let perguntasRestantes = 5;
+    
+    // Elementos DOM
+    const chatContainer = document.getElementById('chat-container');
+    const naoLogadoAlert = document.getElementById('nao-logado-alert');
+    const chatMessages = document.getElementById('chat-messages');
+    const perguntaInput = document.getElementById('pergunta-input');
+    const chatbotForm = document.getElementById('chatbot-form');
+    const enviarBtn = document.getElementById('enviar-btn');
+    const perguntasContador = document.getElementById('perguntas-contador');
+    const typingIndicator = document.getElementById('typing-indicator');
+    const temaAtual = document.getElementById('tema-atual');
+    const usuarioDropdown = document.getElementById('usuario-dropdown');
+    const usuarioNome = document.getElementById('usuario-nome');
+    const loginItem = document.getElementById('login-item');
+    const btnLogout = document.getElementById('btn-logout');
+    const linkAdmin = document.getElementById('link-admin');
+    const temasDropdown = document.getElementById('temas-dropdown');
+    const temasLista = document.getElementById('temas-lista');
+    
+    // Verifica se o usuário está logado
+    async function verificarLogin() {
+      try {
+        const response = await fetch('/api/verificar-login');
+        if (response.ok) {
+          const data = await response.json();
+          usuarioLogado = data.usuario;
+          temaSelecionado = data.temaSelecionado;
+          perguntasRestantes = 5 - data.usuario.perguntasChatBot;
+          
+          // Atualiza interface para usuário logado
+          usuarioNome.textContent = usuarioLogado.nome;
+          usuarioDropdown.style.display = 'block';
+          loginItem.style.display = 'none';
+          
+          // Verifica se é um perfil admin
+          if (usuarioLogado.perfil === 'admin1' || usuarioLogado.perfil === 'admin2') {
+            linkAdmin.style.display = 'block';
+          }
+          
+          // Exibe chatbot para usuários logados
+          chatContainer.style.display = 'block';
+          naoLogadoAlert.style.display = 'none';
+          
+          // Atualiza tema atual
+          atualizarTemaAtual();
+          
+          // Atualiza contador de perguntas
+          atualizarContadorPerguntas();
+          
+          // Carrega temas disponíveis
+          carregarTemas();
+          
+          // Adiciona mensagem de boas-vindas
+          setTimeout(() => {
+            adicionarMensagemBot('Olá! Como posso ajudar você hoje?');
+          }, 500);
+          
+          return true;
+        } else {
+          // Usuário não está logado
+          chatContainer.style.display = 'none';
+          naoLogadoAlert.style.display = 'block';
+          return false;
+        }
+      } catch (error) {
+        exibirAlerta('Erro ao verificar login');
+        return false;
+      }
+    }
+    
+    // Função para carregar temas disponíveis
+    async function carregarTemas() {
+      try {
+        const response = await fetch('/api/temas');
+        if (response.ok) {
+          const temas = await response.json();
+          // Preenche dropdown de temas
+          temasLista.innerHTML = '';
+          temas.forEach(tema => {
+            const li = document.createElement('li');
+            const a = document.createElement('a');
+            a.classList.add('dropdown-item');
+            a.setAttribute('data-tema', tema.id);
+            a.innerHTML = `<i class="fas fa-${tema.icone || 'palette'}"></i> ${tema.nome}`;
+            
+            // Marca tema atual
+            if (tema.id === temaSelecionado) {
+              a.classList.add('active');
+            }
+            
+            // Evento de click para mudar tema
+            a.addEventListener('click', () => mudarTema(tema.id));
+            
+            li.appendChild(a);
+            temasLista.appendChild(li);
+          });
+          
+          // Exibe dropdown de temas
+          temasDropdown.style.display = 'block';
+        }
+      } catch (error) {
+        console.error('Erro ao carregar temas:', error);
+      }
+    }
+    
+    // Função para mudar tema
+    async function mudarTema(temaId) {
+      try {
+        const response = await fetch('/api/tema', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ tema: temaId })
+        });
+        
+        if (response.ok) {
+          temaSelecionado = temaId;
+          location.reload(); // Recarrega para aplicar o tema
+        } else {
+          exibirAlerta('Erro ao alterar tema');
+        }
+      } catch (error) {
+        exibirAlerta('Erro ao conectar com o servidor');
+      }
+    }
+    
+    // Atualiza tema atual
+    function atualizarTemaAtual() {
+      const temas = {
+        'padrao': { nome: 'Padrão', icone: 'palette' },
+        'tecnologia': { nome: 'Tecnologia', icone: 'laptop-code' },
+        'educacao': { nome: 'Educação', icone: 'graduation-cap' },
+        'saude': { nome: 'Saúde', icone: 'heartbeat' }
+      };
+      
+      const tema = temas[temaSelecionado] || temas['padrao'];
+      temaAtual.innerHTML = `<i class="fas fa-${tema.icone}"></i> ${tema.nome}`;
+    }
+    
+    // Atualiza contador de perguntas
+    function atualizarContadorPerguntas() {
+      if (perguntasRestantes <= 0) {
+        perguntasContador.innerHTML = '<span class="text-danger">Você atingiu o limite de perguntas!</span>';
+        perguntaInput.disabled = true;
+        enviarBtn.disabled = true;
+      } else {
+        perguntasContador.textContent = `Você tem ${perguntasRestantes} pergunta${perguntasRestantes !== 1 ? 's' : ''} disponíve${perguntasRestantes !== 1 ? 'is' : 'l'}`;
+      }
+    }
+    
+    // Adiciona mensagem do usuário
+    function adicionarMensagemUsuario(texto) {
+      const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const mensagemHTML = `
+        <div class="message user-message">
+          <div>${texto}</div>
+          <div class="message-time">${time}</div>
+        </div>
+      `;
+      chatMessages.innerHTML += mensagemHTML;
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+    
+    // Adiciona mensagem do bot
+    function adicionarMensagemBot(texto) {
+      // Mostra indicador de digitação
+      mostrarDigitando();
+      
+      // Simula tempo de resposta
+      setTimeout(() => {
+        // Esconde indicador de digitação
+        esconderDigitando();
+        
+        const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const mensagemHTML = `
+          <div class="message bot-message">
+            <div>${texto}</div>
+            <div class="message-time">${time}</div>
+          </div>
+        `;
+        chatMessages.innerHTML += mensagemHTML;
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+      }, 1000); // Simula tempo de resposta de 1 segundo
+    }
+    
+    // Mostra indicador de digitação
+    function mostrarDigitando() {
+      typingIndicator.style.display = 'inline-block';
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+    
+    // Esconde indicador de digitação
+    function esconderDigitando() {
+      typingIndicator.style.display = 'none';
+    }
+    
+    // Envia pergunta para o chatbot
+    async function enviarPergunta(pergunta) {
+      try {
+        const response = await fetch('/api/chatbot', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ pergunta })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+          // Atualiza contador de perguntas
+          if (data.perguntasRestantes !== undefined) {
+            perguntasRestantes = data.perguntasRestantes;
+            atualizarContadorPerguntas();
+          }
+          
+          // Adiciona resposta do bot
+          adicionarMensagemBot(data.resposta);
+          
+          // Verifica se atingiu o limite
+          if (data.limiteAtingido) {
+            perguntasRestantes = 0;
+            atualizarContadorPerguntas();
+          }
+        } else {
+          adicionarMensagemBot('Desculpe, ocorreu um erro ao processar sua pergunta.');
+        }
+      } catch (error) {
+        adicionarMensagemBot('Desculpe, estou enfrentando problemas técnicos no momento.');
+      }
+    }
+    
+    // Exibe alerta
+    function exibirAlerta(mensagem) {
+      document.getElementById('modalAlertaBody').innerText = mensagem;
+      const modal = new bootstrap.Modal(document.getElementById('modalAlerta'));
+      modal.show();
+    }
+    
+    // Evento de logout
+    btnLogout.addEventListener('click', async function(e) {
+      e.preventDefault();
+      
+      try {
+        const response = await fetch('/api/logout', {
+          method: 'POST'
+        });
+        
+        if (response.ok) {
+          window.location.href = 'login.html';
+        } else {
+          exibirAlerta('Erro ao fazer logout');
+        }
+      } catch (error) {
+        exibirAlerta('Erro ao conectar com o servidor');
+      }
+    });
+    
+    // Submissão do formulário do chatbot
+    chatbotForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const pergunta = perguntaInput.value.trim();
+      if (pergunta) {
+        // Adiciona mensagem do usuário
+        adicionarMensagemUsuario(pergunta);
+        
+        // Limpa campo de entrada
+        perguntaInput.value = '';
+        
+        // Envia pergunta para o servidor
+        enviarPergunta(pergunta);
+      }
+    });
+    
+    // Inicializa a página
+    window.addEventListener('load', () => {
+      verificarLogin();
+    });
+  </script>
+</body>
+</html> 
